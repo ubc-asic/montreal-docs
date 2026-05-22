@@ -3,3 +3,25 @@ MONTRÉAL PROJECT DOCS
 
 This repository is used for continuous deployment of design documents
 for the Montréal Project. See https://github.com/ubc-asic.
+
+The AsciiDoc files are rendered and deployed to https://warricklo.net/montreal.
+
+Usage
+-----
+
+Commit your changes and push to the Github server to trigger the CD action:
+
+	$ git add file.adoc
+	$ git commit -m "Commit message"
+	$ git push origin master
+
+To avoid triggering Github Actions, add [skip ci] to your subject line:
+
+	$ git commit -m "Update readme [skip ci]"
+
+I would encourage everyone that pushes to sign their commits:
+
+	$ git commit -S
+
+More on signing commits in Git:
+https://git-scm.com/book/en/v2/Git-Tools-Signing-Your-Work.
