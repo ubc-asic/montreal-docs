@@ -16,7 +16,9 @@ jobs:
       - name: Deploy
         run: |
           ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << EOF
+          umask 027
           cd ~/montreal-docs
           git pull origin master
+          cp docinfo.html /pub/www/warricklo.net/montreal/
           cp *.adoc /pub/www/warricklo.net/montreal/
           EOF
