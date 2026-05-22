@@ -1,8 +1,8 @@
 Register file
 =============
+:revnumber: 0.1.0-draft.3
+:revdate: 2026-05-22
 :numbered:
-:toc: right
-:stem: latexmath
 
 [cols="h,5"]
 |===
