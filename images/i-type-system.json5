@@ -1,0 +1,15 @@
+{
+    reg: [
+        { bits: 7, name: 0x73, attr: ["ECALL", "EBREAK"] },
+        { bits: 5, name: "rd", type: 2 },
+        { bits: 3, name: 0 },
+        { bits: 5, name: "rs1", type: 2 },
+        { bits: 12, name: "imm[11:0]", attr: [0, 1] }
+    ],
+    config: {
+        fontsize: 12,
+        label: {
+            right: "I-type"
+        }
+    }
+}

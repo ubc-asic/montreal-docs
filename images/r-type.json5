@@ -1,0 +1,20 @@
+{
+    reg: [
+        {
+            bits: 7,
+            name: 0x33,
+            attr: ["ADD", "SUB", "SLT", "SLTU", "XOR", "OR", "AND", "SLL", "SRL", "SRA"]
+        },
+        { bits: 5, name: "rd", type: 2 },
+        { bits: 3, name: "funct3", attr: [0, 0, 2, 3, 4, 6, 7, 1, 5, 5] },
+        { bits: 5, name: "rs1", type: 2 },
+        { bits: 5, name: "rs2", type: 2 },
+        { bits: 7, name: "funct7", attr: [0, 0x20, 0, 0, 0, 0, 0, 0, 0, 0x20] }
+    ],
+    config: {
+        fontsize: 12,
+        label: {
+            right: "R-type"
+        }
+    }
+}

@@ -1,0 +1,19 @@
+{
+    reg: [
+        {
+            bits: 7,
+            name: 0x13,
+            attr: ["ADDI", "SLTI", "SLTIU", "XORI", "ORI", "ANDI"]
+        },
+        { bits: 5, name: "rd", type: 2 },
+        { bits: 3, name: "funct3", attr: [0, 2, 3, 4, 6, 7] },
+        { bits: 5, name: "rs1", type: 2 },
+        { bits: 12, name: "imm[11:0]", type: 7 }
+    ],
+    config: {
+        fontsize: 12,
+        label: {
+            right: "I-type"
+        }
+    }
+}
