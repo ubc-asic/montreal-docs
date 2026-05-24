@@ -1,0 +1,21 @@
+#!/bin/sh
+
+HTML="$(asciidoctor "$PATH_TRANSLATED" \
+	-r asciidoctor-katex \
+	-a docinfo=shared \
+	-a stem=latexmath \
+	-a toc=left \
+	-o - \
+	2> /tmp/adoc-render-error.log)"
+
+# shellcheck disable=SC2181
+if [ $? -ne 0 ]; then
+	printf "Status: 500 Internal Server Error\n"
+	printf "Content-Type: text/html\n\n"
+	printf "<h1>500 Render error</h1>\n"
+	printf "<pre>%s</pre>\n" "$(cat /tmp/adoc-render-error.log)"
+	exit 1
+fi
+
+printf "Content-Type: text/html; charset=UTF-8\n\n"
+printf "%s\n" "$HTML"
