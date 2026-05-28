@@ -1,19 +1,28 @@
 #!/bin/sh
 
+DIR="/pub/www/warricklo.net/montreal"
+WAVEDROM="/usr/local/bin/wavedrom-cli"
+ERROR_LOG="/tmp/adoc-render-error.log"
+
 HTML="$(asciidoctor "$PATH_TRANSLATED" \
+	-r asciidoctor-diagram \
 	-r asciidoctor-katex \
+	-r ./asciidoc-multirow-table-header-tree-processor.rb \
+	-a toc=left \
 	-a docinfo=shared \
 	-a stem=latexmath \
-	-a toc=left \
+	-a wavedrom="$WAVEDROM" \
+	-a imagesdir=images \
+	-a imagesoutdir="$DIR/images" \
 	-o - \
-	2> /tmp/adoc-render-error.log)"
+	2> "$ERROR_LOG")"
 
 # shellcheck disable=SC2181
 if [ $? -ne 0 ]; then
 	printf "Status: 500 Internal Server Error\n"
 	printf "Content-Type: text/html\n\n"
 	printf "<h1>500 Render error</h1>\n"
-	printf "<pre>%s</pre>\n" "$(cat /tmp/adoc-render-error.log)"
+	printf "<pre>%s</pre>\n" "$(cat "$ERROR_LOG")"
 	exit 1
 fi
 
