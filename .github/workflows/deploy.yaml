@@ -6,19 +6,18 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
-      - name: Deploy
-        run: |
-          ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << EOF
-          umask 027
-          cd ~/montreal-docs
-          git pull origin master
-          cp docinfo.html /pub/www/warricklo.net/montreal/
-          cp *.adoc /pub/www/warricklo.net/montreal/
-          EOF
+    - uses: actions/checkout@master
+    - name: Setup SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SERVER_SSH_KEY }}" > ~/.ssh/id_ed25519
+        chmod 600 ~/.ssh/id_ed25519
+        ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+    - name: Deploy
+      run: |
+        ssh ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} << EOF
+        umask 027
+        cd ~/montreal-docs
+        git pull origin master
+        rsync -av --exclude=".git" --exclude=".github" --exclude="adoc-render" --exclude="asciidoc-multirow-table-header-tree-processor.rb" . /pub/www/warricklo.net/montreal/
+        EOF
