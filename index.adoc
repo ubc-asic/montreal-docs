@@ -1,101 +1,23 @@
-Montreal
+Montréal
 ========
-:revnumber: 0.1.0-draft
+:revnumber: 0.0.1-draft
 :toc: preamble
 
 A RISC-V RV32E processor designed for TinyTapeout.
 
-RV32E
------
+Github repository:
+https://github.com/ubc-asic/superscalar-summer/tree/master +
+Development branch:
+https://github.com/ubc-asic/superscalar-summer/tree/feature/core
+
+Design Docs
+-----------
+
+* link:uarch/mas.adoc[Microarchitecture Specification]
+** link:uarch/regfile.adoc[Register file]
+** ALU
 
 https://docs.riscv.org/reference/isa/unpriv/unpriv-index.html[ISA Reference]
-
-Reduces number of integer registers to 16 general-purpose registers
-(x0-x15). Upper 16 registers consume around one quarter of the total
-area of the core excluding memories, thus their removal saves around 25%
-core area with a corresponding core power reduction.
-
-Each register is 32 bits wide.
-
-[cols="1,2,4", options="header"]
-|===
-
-| Register
-| Description
-| Purpose
-
-| x0
-| dedicated zero
-| Source operand for value 0.
-
-| x1
-| return address
-| Written by JAL/JALR. Holds address to be returned to once a function returns.
-Must be saved to stack before calling another function.
-
-| x2
-| stack pointer
-| Always points to top of the stack in RAM. Decremented to allocate space,
-incremented to free it. CALLEE must restore it BEFORE returning.
-
-| x3
-| global pointer
-|
-
-| x4
-| thread pointer
-|
-
-| x5
-| alternate link reg
-| Second link register for nested JAL sequences. Caller must save
-if needed across a call.
-
-| x6
-| general scratch reg
-|
-
-| x7
-| general scratch reg
-|
-
-| x8
-| frame pointer
-|
-
-| x9
-| saved register
-|
-
-| x10
-| first function argument
-| Also used to return integer results from function.
-
-| x11
-| second function argument
-|
-
-| x12
-| third function argument
-|
-
-| x13
-| fourth function argument
-|
-
-| x14
-| fifth function argument
-|
-
-| x15
-| sixth function argument
-|
-
-| pc
-| program counter
-| Address of current instruction
-
-|===
 
 Instruction Set
 ---------------
@@ -160,88 +82,6 @@ h| `11`
 |
 |
 |===
-
-=== Immediate Types
-
-The labels `[7]`, `[20]`, and `[31]` represent the bits `inst[7]`, `inst[20]`, and `inst[31]`, respectively.
-
-[wavedrom, format=svg]
-....
-{
-	reg: [
-		{ bits: 11, name: "inst[30:20]", attr: "11" },
-		{ bits: 21, name: "inst[31]", attr: "21" }
-	],
-	config: {
-		fontsize: 12,
-		label: { right: "I-immediate" }
-	}
-}
-....
-
-[wavedrom, format=svg]
-....
-{
-	reg: [
-		{ bits: 1, name: "[7]", attr: "1" },
-		{ bits: 4, name: "inst[11:8]", attr: "4" },
-		{ bits: 6, name: "inst[30:25]", attr: "6" },
-		{ bits: 21, name: "inst[31]", attr: "21" }
-	],
-	config: {
-		fontsize: 12,
-		label: { right: "S-immediate" }
-	}
-}
-....
-
-[wavedrom, format=svg]
-....
-{
-	reg: [
-		{ bits: 1, name: "0", attr: "1" },
-		{ bits: 4, name: "inst[11:8]", attr: "4" },
-		{ bits: 6, name: "inst[30:25]", attr: "6" },
-		{ bits: 1, name: "[7]", attr: "1" },
-		{ bits: 20, name: "inst[31]", attr: "20" }
-	],
-	config: {
-		fontsize: 12,
-		label: { right: "B-immediate" }
-	}
-}
-....
-
-[wavedrom, format=svg]
-....
-{
-	reg: [
-		{ bits: 12, name: "0", attr: "12" },
-		{ bits: 20, name: "inst[31:12]", attr: "20" },
-	],
-	config: {
-		fontsize: 12,
-		label: { right: "U-immediate" }
-	}
-}
-....
-
-[wavedrom, format=svg]
-....
-{
-	reg: [
-		{ bits: 1, name: "0", attr: "1" },
-		{ bits: 10, name: "inst[30:21]", attr: "10" },
-		{ bits: 1, name: "[20]", attr: "1" },
-		{ bits: 8, name: "inst[19:12]", attr: "8" },
-		{ bits: 12, name: "inst[31]", attr: "12" }
-	],
-	config: {
-		fontsize: 12,
-		label: { right: "J-immediate" }
-	}
-}
-....
 
 === LUI
 
@@ -655,6 +495,8 @@ The labels `[7]`, `[20]`, and `[31]` represent the bits `inst[7]`, `inst[20]`, a
 
 === JAL
 
+The labels `[11]` and `[20]` represent the bits `imm[11]` and `imm[20]` respectively.
+
 [wavedrom, format=svg]
 ....
 {
@@ -1015,3 +857,85 @@ The labels `[11]` and `[12]` represent the bits `imm[11]` and `imm[12]` respecti
 	}
 }
 ....
+
+=== Immediate Types
+
+The labels `[7]` and `[20]` represent the bits `inst[7]` and `inst[20]`, respectively.
+
+[wavedrom, format=svg]
+....
+{
+	reg: [
+		{ bits: 12, name: "inst[31:20]", attr: "12" },
+		{ bits: 20, name: "inst[31]", attr: "20" }
+	],
+	config: {
+		fontsize: 12,
+		label: { right: "I-immediate" }
+	}
+}
+....
+
+[wavedrom, format=svg]
+....
+{
+	reg: [
+		{ bits: 5, name: "inst[11:7]", attr: "5" },
+		{ bits: 7, name: "inst[31:25]", attr: "7" },
+		{ bits: 20, name: "inst[31]", attr: "20" }
+	],
+	config: {
+		fontsize: 12,
+		label: { right: "S-immediate" }
+	}
+}
+....
+
+[wavedrom, format=svg]
+....
+{
+	reg: [
+		{ bits: 1, name: "0", attr: "1" },
+		{ bits: 4, name: "inst[11:8]", attr: "4" },
+		{ bits: 6, name: "inst[30:25]", attr: "6" },
+		{ bits: 1, name: "[7]", attr: "1" },
+		{ bits: 20, name: "inst[31]", attr: "20" }
+	],
+	config: {
+		fontsize: 12,
+		label: { right: "B-immediate" }
+	}
+}
+....
+
+[wavedrom, format=svg]
+....
+{
+	reg: [
+		{ bits: 12, name: "0", attr: "12" },
+		{ bits: 20, name: "inst[31:12]", attr: "20" },
+	],
+	config: {
+		fontsize: 12,
+		label: { right: "U-immediate" }
+	}
+}
+....
+
+[wavedrom, format=svg]
+....
+{
+	reg: [
+		{ bits: 1, name: "0", attr: "1" },
+		{ bits: 10, name: "inst[30:21]", attr: "10" },
+		{ bits: 1, name: "[20]", attr: "1" },
+		{ bits: 8, name: "inst[19:12]", attr: "8" },
+		{ bits: 12, name: "inst[31]", attr: "12" }
+	],
+	config: {
+		fontsize: 12,
+		label: { right: "J-immediate" }
+	}
+}
+....
+

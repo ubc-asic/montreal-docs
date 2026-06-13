@@ -10,6 +10,7 @@ HTML="$(asciidoctor "$PATH_TRANSLATED" \
 	-r ./asciidoc-multirow-table-header-tree-processor.rb \
 	-a toc=left \
 	-a docinfo=shared \
+	-a docinfodir="$DIR" \
 	-a stem=latexmath \
 	-a wavedrom="$WAVEDROM" \
 	-a imagesdir=images \

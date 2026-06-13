@@ -1,5 +1,0 @@
-Montréal Project Design Documentation
-=====================================
-:nofooter:
-
-* link:regfile.adoc[`regfile`]

@@ -13,7 +13,7 @@ Register file
 | `rtl/regfile.sv`
 
 | Version
-| 0.1.0-draft
+| 0.1.0
 
 | Project
 | UBC ASIC / Montréal Project
