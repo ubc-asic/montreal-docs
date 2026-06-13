@@ -19,5 +19,5 @@ jobs:
         umask 027
         cd ~/montreal-docs
         git pull origin master
-        rsync -av --exclude=".git" --exclude=".github" --exclude="adoc-render" --exclude="asciidoc-multirow-table-header-tree-processor.rb" . /pub/www/warricklo.net/montreal/
+        rsync -rltv --exclude=".git" --exclude=".github" --exclude="adoc-render" --exclude="asciidoc-multirow-table-header-tree-processor.rb" . /pub/www/warricklo.net/montreal/
         EOF
