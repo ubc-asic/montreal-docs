@@ -1,7 +1,7 @@
 Register file
 =============
-:revnumber: 0.1.0-draft.3
-:revdate: 2026-05-22
+:revnumber: 0.2-draft.1
+:revdate: 2026-06-13
 :numbered:
 
 [cols="h,5"]
@@ -13,7 +13,7 @@ Register file
 | `rtl/regfile.sv`
 
 | Version
-| 0.1.0
+| 0.2.0
 
 | Project
 | UBC ASIC / Montréal Project
@@ -23,6 +23,28 @@ Register file
 
 | Licence
 | CERN Open Hardware Licence Version 2 -- Permissive (CERN-OHL-P-2.0)
+|===
+
+[cols="1,1,1,1,4", options="header"]
+|===
+| Version
+| Date
+| Author(s)
+| Reviewer(s)
+| Comments
+
+| 0.1
+| 2026-05-22
+| Warrick Lo
+| --
+| Initial draft.
+
+| 0.2-draft.1
+| 2026-06-13
+| Warrick Lo
+| --
+| Added synchronous reset. +
+Removed requirement for storing zero in register 0 (section 6).
 |===
 
 Terminology
@@ -111,6 +133,11 @@ Not applicable.
 | 1
 | Rising-edge write clock.
 
+| `rst_ni`
+| input
+| 1
+| Active-low synchronous reset.
+
 | `chunk_sel_i`
 | input
 | stem:[\lceil\log_2{(\texttt{NUM\_CHUNKS})}\rceil]
@@ -142,7 +169,8 @@ Not applicable.
 | Write data (one chunk).
 |===
 
-== Design Constraints
+Design Constraints
+------------------
 
 [cols="1,4"]
 |===
@@ -158,14 +186,16 @@ Not applicable.
 | `NUM_READ_PORTS` *MUST* be a positive integer.
 |===
 
-== Design Requirements
+Design Requirements
+-------------------
 
 [cols="1,4"]
 |===
 | Requirement ID | Description
 
 | `DR-REGFILE-010`
-| The module *MUST* store `NUM_WORDS` words, each `WORD_WIDTH` bits wide.
+| The module *MUST* store stem:[\texttt{NUM\_WORDS} - 1] words,
+each `WORD_WIDTH` bits wide.
 
 | `DR-REGFILE-020`
 | Chunk stem:[k] of word stem:[n] *SHALL* correspond to bits
@@ -216,6 +246,25 @@ address in the same cycle *SHALL* return the value held in the register prior to
 the rising clock edge of the current cycle.
 |===
 
+Timing
+------
+
+[cols="1,2"]
+|===
+| Operation | Latency
+
+| Read
+| 0 cycles (combinational)
+
+| Reset visible on read port
+| 1 cycle
+
+| Write visible on read port
+| 1 cycle
+
+| Same address back-to-back writes
+| Safe
+|===
 
 Architecture
 ------------
@@ -228,10 +277,10 @@ The register array is declared as a packed 2D structure:
 
 [source]
 ----
-logic [NUM_WORDS-1:0][WORD_WIDTH-1:0]
+logic [NUM_WORDS-1:1][WORD_WIDTH-1:0]
 ----
 
-By default, this will be a stem:[16 \times 32] bit array.
+By default, this will be a stem:[15 \times 32] bit array.
 
 === Chunk Addressing
 
@@ -269,28 +318,7 @@ Both of the following conditions must be satisfied for a write to occur:
 . `wen_i` is asserted; and
 . `waddr_i` is not zero, as register 0 is write-protected.
 
-Timing
-------
-
-[cols="1,2"]
-|===
-| Operation | Latency
-
-| Read
-| 0 cycles (combinational)
-
-| Write visible on read port
-| 1 cycle
-
-| Same address back-to-back writes
-| Safe
-|===
-
-No reset is implemented; register contents are undefined on power-on until
-written to.
-
-Design Notes
-------------
+=== Implementation Notes
 
 The following documents implementation decisions, including intentional deviations
 from standard practice and known limitations.
