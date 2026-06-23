@@ -1,0 +1,348 @@
+ALU
+===
+:revnumber: 0.1-draft.1
+:revdate: 2026-06-22
+:numbered:
+
+[cols="h,5"]
+|===
+| IP Name
+| `alu`
+
+| File
+| `rtl/alu.sv`
+
+| Version
+| 0.1.0
+
+| Project
+| UBC ASIC / Montréal Project
+
+| Engineer
+| Dariell Sugiaman -- dari3llsugiaman@gmail.com
+
+| Licence
+| CERN Open Hardware Licence Version 2 -- Permissive (CERN-OHL-P-2.0)
+|===
+
+[cols="1,1,1,1,4", options="header"]
+|===
+| Version
+| Date
+| Author(s)
+| Reviewer(s)
+| Comments
+
+| 0.1-draft.1
+| 2026-06-22
+| Dariell Sugiaman
+| --
+| Initial draft. ADD and SUB implemented.
+|===
+
+Terminology
+-----------
+
+The key words "*MUST*", "*MUST NOT*", "*REQUIRED*", "*SHALL*", "*SHALL NOT*",
+"*SHOULD*", "*SHOULD NOT*", "*RECOMMENDED*", "*NOT RECOMMENDED*", "*MAY*",
+and "*OPTIONAL*" in this document are to be interpreted as described in
+https://rfc-editor.org/info/bcp14[BCP 14]
+{blank}[https://doi.org/10.17487/RFC2119[RFC2119]]
+{blank}[https://doi.org/10.17487/RFC8174[RFC8174]]
+when, and only when, they appear in all capitals, as shown here.
+
+IP Overview
+-----------
+
+A byte-sliced arithmetic logic unit (ALU) for a RISC-V RV32E core. The ALU
+operates on 8-bit slices of 32-bit words, processing one slice per clock cycle
+over four cycles to produce a full 32-bit result. Carry state is propagated
+between slices via an internal flip-flop.
+
+Parameters
+----------
+
+.Parameters.
+[cols="2,1,1,3"]
+|===
+| Parameter | Type | Default | Description
+
+| `XLEN`
+| `int unsigned`
+| 32
+| Full width of each operand in bits.
+
+| `SLICE_WIDTH`
+| `int unsigned`
+| 8
+| Width of one slice in bits.
+|===
+
+.Local parameters.
+[cols="2,2,3,1,3"]
+|===
+| Parameter | Type | Expression | Default | Description
+
+| `SLICE_ADDR_WIDTH`
+| `int unsigned`
+| stem:[\lceil\log_2{(\texttt{XLEN}/\texttt{SLICE\_WIDTH})}\rceil]
+| 2
+| Number of bits required to address each slice.
+|===
+
+Interface Specification
+-----------------------
+
+=== Types
+
+.Types (from `montreal_pkg`).
+[cols="1,1,3"]
+|===
+| Type | Width | Description
+
+| `fu_op_t`
+| 4
+| Enum encoding the ALU operation to perform.
+
+| `slice_t`
+| `SLICE_WIDTH`
+| One 8-bit slice of a 32-bit word.
+|===
+
+.`fu_op_t` encoding.
+[cols="1,1,3"]
+|===
+| Name | Encoding | Description
+
+| `ADD`
+| `4'b0000`
+| Add.
+
+| `SUB`
+| `4'b1000`
+| Subtract.
+
+| `XOR`
+| `4'b0100`
+| Bitwise XOR.
+
+| `OR`
+| `4'b0110`
+| Bitwise OR.
+
+| `AND`
+| `4'b0111`
+| Bitwise AND.
+
+| `SLL`
+| `4'b0001`
+| Shift left logical.
+
+| `SRL`
+| `4'b0101`
+| Shift right logical.
+
+| `SRA`
+| `4'b1101`
+| Shift right arithmetic.
+
+| `SLT`
+| `4'b0010`
+| Set if less than (signed).
+
+| `SLTU`
+| `4'b0011`
+| Set if less than (unsigned).
+
+| `CZERO_EQZ`
+| `4'b1001`
+| Conditional zero if equal to zero.
+
+| `CZERO_NEZ`
+| `4'b1011`
+| Conditional zero if not equal to zero.
+|===
+
+=== Ports
+
+.Port table.
+[cols="1,1,1,2"]
+|===
+| Port Name | Direction | Width | Description
+
+| `clk_i`
+| input
+| 1
+| Rising-edge clock.
+
+| `rst_ni`
+| input
+| 1
+| Active-low synchronous reset.
+
+| `alu_op_i`
+| input
+| 4
+| ALU operation select.
+
+| `count_i`
+| input
+| `SLICE_ADDR_WIDTH`
+| Slice index for the current cycle (0 = LSB slice, 3 = MSB slice).
+
+| `a_i`
+| input
+| `SLICE_WIDTH`
+| First operand slice.
+
+| `b_i`
+| input
+| `SLICE_WIDTH`
+| Second operand slice.
+
+| `result_o`
+| output
+| `SLICE_WIDTH`
+| Result slice for the current cycle.
+
+| `carry_o`
+| output
+| 1
+| Carry-out from the current slice operation. For ADD, `carry_o = 1` on the
+final slice indicates unsigned overflow. For SUB, `carry_o = 1` indicates no
+borrow (a >= b); `carry_o = 0` indicates a borrow occurred (a < b).
+|===
+
+Design Constraints
+------------------
+
+[cols="1,4"]
+|===
+| Constraint ID | Description
+
+| `DC-ALU-010`
+| `XLEN` *MUST* be a positive integer multiple of `SLICE_WIDTH`.
+
+| `DC-ALU-020`
+| The caller *MUST* present slices in order from LSB (``count_i`` = 0) to MSB
+(``count_i`` = `SLICE_ADDR_WIDTH - 1`) on consecutive rising clock edges.
+
+| `DC-ALU-030`
+| `alu_op_i` *MUST NOT* change between slices of the same operation.
+|===
+
+Design Requirements
+-------------------
+
+[cols="1,4"]
+|===
+| Requirement ID | Description
+
+| `DR-ALU-010`
+| The module *MUST* implement ADD: `result = a + b`.
+
+| `DR-ALU-020`
+| The module *MUST* implement SUB: `result = a - b`.
+
+| `DR-ALU-030`
+| Carry *MUST* be propagated correctly from each slice to the next.
+
+| `DR-ALU-040`
+| On the first slice (`count_i == 0`), the carry-in *MUST* be initialised to
+`negate_b` to provide the two's complement +1 for subtraction.
+
+| `DR-ALU-050`
+| On subsequent slices (`count_i != 0`), the carry-in *MUST* be the carry-out
+stored from the previous slice.
+
+| `DR-ALU-060`
+| The carry flip-flop *MUST* be reset to zero when `rst_ni` is deasserted.
+
+| `DR-ALU-070`
+| For ADD, `carry_o` on the final slice (`count_i == SLICE_ADDR_WIDTH-1`) *SHALL*
+be 1 if the unsigned 32-bit result overflows, and 0 otherwise.
+
+| `DR-ALU-080`
+| For SUB, `carry_o` on the final slice *SHALL* be 1 if no borrow occurred
+(a >= b), and 0 if a borrow occurred (a < b). This is the natural carry-out
+of two's complement subtraction and is the inverse of the borrow signal.
+|===
+
+Timing
+------
+
+[cols="1,2"]
+|===
+| Operation | Latency
+
+| Result per slice
+| 0 cycles (combinational within the cycle)
+
+| Full 32-bit result
+| 4 cycles (one slice per cycle)
+
+| Carry visible to next slice
+| 1 cycle (registered in `carry_q`)
+|===
+
+Architecture
+------------
+
+The ALU uses a byte-sliced datapath inspired by classic bit-sliced CPU
+architectures. A full 32-bit operation is broken into four 8-bit slice
+operations, one per clock cycle, with `count_i` indicating the current slice.
+
+=== Negation and Subtraction
+
+Subtraction is implemented using two's complement negation, sharing the same
+adder hardware as addition. A `negate_b` signal is derived combinationally
+from `alu_op_i` using a Karnaugh map:
+
+[source]
+----
+negate_b = alu_op_i[3] || (!alu_op_i[2] && alu_op_i[1])
+----
+
+When `negate_b` is asserted, `b_i` is inverted via XOR before entering the
+adder, and the carry-in on the first slice is set to 1, completing the two's
+complement negation (`~b + 1`).
+
+=== Adder
+
+The adder is 9 bits wide to capture carry-out:
+
+[source]
+----
+adder_a = {1'b0, a_i}
+adder_b = {1'b0, (b_i ^ {SLICE_WIDTH{negate_b}})}
+adder_result = adder_a + adder_b + carry
+----
+
+The result slice is `adder_result[SLICE_WIDTH-1:0]` and the carry-out is
+`adder_result[SLICE_WIDTH]`.
+
+=== Carry Propagation
+
+The carry-in for each cycle is selected as:
+
+[stem]
+++++
+\texttt{carry} =
+\begin{cases}
+  \texttt{negate\_b} & \text{if } \texttt{count\_i} = 0, \\
+  \texttt{carry\_q}  & \text{otherwise.}
+\end{cases}
+++++
+
+`carry_q` is a registered copy of `carry_d` (the carry-out from the previous
+slice), updated on each rising clock edge.
+
+=== Implementation Notes
+
+* The `negate_b` Karnaugh map covers ADD, SUB, SLT, and SLTU. If `fu_op_t`
+  encoding changes, this logic *MUST* be re-derived.
+
+* The adder is shared between ADD, SUB, SLT, and SLTU (all `alu_op_i[2:0]`
+  matching `3'b0??`), which is possible because their lower three bits are
+  identical and the distinction is handled entirely by `negate_b`.
+|===

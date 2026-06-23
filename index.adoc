@@ -15,7 +15,7 @@ Design Docs
 
 * link:uarch/mas.adoc[Microarchitecture Specification]
 ** link:uarch/regfile.adoc[Register file]
-** ALU
+** link:uarch/alu.adoc[ALU]
 
 https://docs.riscv.org/reference/isa/unpriv/unpriv-index.html[ISA Reference]
 
